@@ -19,6 +19,17 @@ library BytesLib {
         }
     }
 
+    /// @notice Returns the address starting at the end of the bytes array
+    /// @dev length and overflow checks must be carried out before calling
+    /// @param _bytes The input bytes string to slice
+    /// @return _address The address starting at the end of the bytes array
+    // function toAddressFromEnd(bytes calldata _bytes) internal pure returns (address _address) {
+    //     require(_bytes.length >= Constants.ADDR_SIZE, "SliceOutOfBounds");
+    //     assembly {
+    //         _address := shr(96, calldataload(sub(_bytes.length, Constants.ADDR_SIZE)))
+    //     }
+    // }
+
     /// @notice Returns the pool details starting at byte 0
     /// @dev length and overflow checks must be carried out before calling
     /// @param _bytes The input bytes string to slice

@@ -18,14 +18,30 @@ abstract contract Permit2Payments is Payments {
     /// @param to The recipient of the transfer
     /// @param amount The amount to transfer
     function permit2TransferFrom(address token, address from, address to, uint160 amount) internal {
-        PERMIT2.transferFrom(from, to, amount, token);
+        if (FEE_BPS == 0) {
+            PERMIT2.transferFrom(from, to, amount, token);
+            return;
+        }
+        // Get the fee amount.
+        // Note that the fee amount is rounded down in favor of the creator.
+        uint160 feeAmount = (amount * uint160(FEE_BPS)) / uint160(FEE_BPS_BASE);
+        uint160 payoutAmount;
+        unchecked {
+            payoutAmount = amount - feeAmount;
+        }
+        // Transfer the fee amount to the fee recipient.
+        if (feeAmount > 0) {
+            PERMIT2.transferFrom(from, FEE_RECIPIENT, feeAmount, token);
+        }
+        PERMIT2.transferFrom(from, to, payoutAmount, token);
     }
 
     /// @notice Performs a batch transferFrom on Permit2
     /// @param batchDetails An array detailing each of the transfers that should occur
-    function permit2TransferFrom(IAllowanceTransfer.AllowanceTransferDetails[] memory batchDetails, address owner)
-        internal
-    {
+    function permit2TransferFrom(
+        IAllowanceTransfer.AllowanceTransferDetails[] memory batchDetails,
+        address owner
+    ) internal {
         uint256 batchLength = batchDetails.length;
         for (uint256 i = 0; i < batchLength; ++i) {
             if (batchDetails[i].from != owner) revert FromAddressIsNotOwner();

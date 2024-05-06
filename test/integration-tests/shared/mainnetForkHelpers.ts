@@ -108,7 +108,7 @@ export const resetFork = async (block: number = 15360000) => {
     params: [
       {
         forking: {
-          jsonRpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+          jsonRpcUrl: `https://eth-mainnet.g.alchemy.com/v2/kNPJaYqMx7BA9TcDDJQ8pS5WcLqXGiG7`,
           blockNumber: block,
         },
       },

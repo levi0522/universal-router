@@ -28,45 +28,12 @@ export default {
       allowUnlimitedContractSize: false,
       chainId: 1,
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        url: `https://eth-mainnet.g.alchemy.com/v2/kNPJaYqMx7BA9TcDDJQ8pS5WcLqXGiG7`,
         blockNumber: 15360000,
       },
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    goerli: {
-      url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrumRinkeby: {
-      url: `https://rinkeby.arbitrum.io/rpc`,
-    },
-    arbitrum: {
-      url: `https://arb1.arbitrum.io/rpc`,
-    },
-    optimismKovan: {
-      url: `https://kovan.optimism.io`,
-    },
-    optimism: {
-      url: `https://mainnet.optimism.io`,
-    },
-    polygon: {
-      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    base: {
-      url: `https://developer-access-mainnet.base.org`,
-    },
-    baseGoerli: {
-      url: `https://goerli.base.org`,
+      url: `https://eth-mainnet.g.alchemy.com/v2/kNPJaYqMx7BA9TcDDJQ8pS5WcLqXGiG7`,
     },
   },
   namedAccounts: {
