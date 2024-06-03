@@ -28,13 +28,15 @@ contract UniversalRouterTest is Test {
     function setUp() public {
         RouterParameters memory params = RouterParameters({
             feeRecipient: address(0),
-            feeBps: 5,
+            fastTradeFeeBps: 5,
+            sniperFeeBps: 5,
+            limitFeeBps: 5,
             feeBaseBps: 10000,
             permit2: address(0),
             weth9: address(0),
             v2Factory: address(0),
             v3Factory: address(0),
-            pairInitCodeHash: bytes32(0),
+            pairInitCodeHash: bytes32(0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f),
             poolInitCodeHash: bytes32(0)
         });
         router = new UniversalRouter(params);

@@ -19,8 +19,10 @@ export async function deployRouter(
 ): Promise<UniversalRouter> {
   const routerParameters = {
     feeRecipient: "0x464c7Bb0d5DA8189fD140f153535932d291F7f97",
-    feeBps: 5,
-    feeBase: 1000000,
+    fastTradeFeeBps: 2,
+    sniperFeeBps: 5,
+    limitFeeBps: 5,
+    feeBaseBps: 1000,
     permit2: permit2.address,
     weth9: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     v2Factory: V2_FACTORY_MAINNET,

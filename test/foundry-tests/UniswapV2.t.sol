@@ -32,7 +32,9 @@ abstract contract UniswapV2Test is Test {
 
         RouterParameters memory params = RouterParameters({
             feeRecipient: address(0),
-            feeBps: 5,
+            fastTradeFeeBps: 5,
+            sniperFeeBps: 5,
+            limitFeeBps: 5,
             feeBaseBps: 10000,
             permit2: address(PERMIT2),
             weth9: address(WETH9),

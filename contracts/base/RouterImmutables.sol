@@ -3,7 +3,9 @@ pragma solidity ^0.8.17;
 
 struct RouterParameters {
     address feeRecipient;
-    uint256 feeBps;
+    uint256 fastTradeFeeBps;
+    uint256 sniperFeeBps;
+    uint256 limitFeeBps;
     uint256 feeBaseBps;
     address permit2;
     address weth9;

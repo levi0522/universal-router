@@ -108,7 +108,7 @@ export const resetFork = async (block: number = 15360000) => {
     params: [
       {
         forking: {
-          jsonRpcUrl: `https://eth-mainnet.g.alchemy.com/v2/kNPJaYqMx7BA9TcDDJQ8pS5WcLqXGiG7`,
+          jsonRpcUrl: `https://eth-mainnet.g.alchemy.com/v2/NeEJGJMxp5H5Wd9ytPi8c1_PcmiKEh0o`,
           blockNumber: block,
         },
       },

@@ -31,13 +31,15 @@
     "node": ">=14"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "4.7.0",
     "@uniswap/v2-core": "1.0.1",
-    "@uniswap/v3-core": "1.0.0",
-    "@openzeppelin/contracts": "4.7.0"
+    "@uniswap/v3-core": "1.0.0"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "1.0.4",
+    "@nomicfoundation/hardhat-verify": "^2.0.7",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@nomiclabs/hardhat-etherscan": "^3.1.8",
     "@typechain/ethers-v5": "^4.0.0",
     "@types/chai": "^4.2.6",
     "@types/mocha": "^5.2.7",

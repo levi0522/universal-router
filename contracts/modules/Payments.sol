@@ -19,6 +19,7 @@ abstract contract Payments is PaymentsImmutables, Fee {
     error InsufficientETH();
     error InvalidBips();
     error InvalidSpender();
+    error InvalidFeeType(uint256 feeType);
 
     uint256 internal constant FEE_BIPS_BASE = 10_000;
 
@@ -26,16 +27,37 @@ abstract contract Payments is PaymentsImmutables, Fee {
     /// @param token The token to pay (can be ETH using Constants.ETH)
     /// @param recipient The address that will receive the payment
     /// @param value The amount to pay
-    function pay(address token, address recipient, uint256 value) internal {
+    function pay(address token, address recipient, uint256 value, bool isFee, uint8 feeType) internal {
         if (token == Constants.ETH) {
-            if (FEE_BPS == 0) {
+            if (!isFee) {
                 recipient.safeTransferETH(value);
                 return;
             }
 
             // Get the fee amount.
             // Note that the fee amount is rounded down in favor of the creator.
-            uint256 feeAmount = (value * FEE_BPS) / FEE_BPS_BASE;
+            uint256 feeAmount;
+            if (feeType == 0) {
+                if (FAST_TRADE_FEE_BPS == 0) {
+                    ERC20(token).safeTransfer(recipient, value);
+                    return;
+                }
+                feeAmount = (value * FAST_TRADE_FEE_BPS) / FEE_BASE_BPS;
+            } else if (feeType == 1) {
+                if (SNIPER_FEE_BPS == 0) {
+                    ERC20(token).safeTransfer(recipient, value);
+                    return;
+                }
+                feeAmount = (value * SNIPER_FEE_BPS) / FEE_BASE_BPS;
+            } else if (feeType == 2) {
+                if (LIMIT_FEE_BPS == 0) {
+                    ERC20(token).safeTransfer(recipient, value);
+                    return;
+                }
+                feeAmount = (value * LIMIT_FEE_BPS) / FEE_BASE_BPS;
+            } else {
+                revert InvalidFeeType(feeType);
+            }
 
             uint256 payoutAmount;
             unchecked {
@@ -52,14 +74,35 @@ abstract contract Payments is PaymentsImmutables, Fee {
                 value = ERC20(token).balanceOf(address(this));
             }
 
-            if (FEE_BPS == 0) {
+            if (!isFee) {
                 ERC20(token).safeTransfer(recipient, value);
                 return;
             }
 
             // Get the fee amount.
             // Note that the fee amount is rounded down in favor of the creator.
-            uint256 feeAmount = (value * FEE_BPS) / FEE_BPS_BASE;
+            uint256 feeAmount;
+            if (feeType == 0) {
+                if (FAST_TRADE_FEE_BPS == 0) {
+                    ERC20(token).safeTransfer(recipient, value);
+                    return;
+                }
+                feeAmount = (value * FAST_TRADE_FEE_BPS) / FEE_BASE_BPS;
+            } else if (feeType == 1) {
+                if (SNIPER_FEE_BPS == 0) {
+                    ERC20(token).safeTransfer(recipient, value);
+                    return;
+                }
+                feeAmount = (value * SNIPER_FEE_BPS) / FEE_BASE_BPS;
+            } else if (feeType == 2) {
+                if (LIMIT_FEE_BPS == 0) {
+                    ERC20(token).safeTransfer(recipient, value);
+                    return;
+                }
+                feeAmount = (value * LIMIT_FEE_BPS) / FEE_BASE_BPS;
+            } else {
+                revert InvalidFeeType(feeType);
+            }
 
             uint256 payoutAmount;
             unchecked {
@@ -112,7 +155,7 @@ abstract contract Payments is PaymentsImmutables, Fee {
     /// @notice Wraps an amount of ETH into WETH
     /// @param recipient The recipient of the WETH
     /// @param amount The amount to wrap (can be CONTRACT_BALANCE)
-    function wrapETH(address recipient, uint256 amount, bool isFee) internal {
+    function wrapETH(address recipient, uint256 amount, bool isFee, uint8 feeType) internal {
         if (amount == Constants.CONTRACT_BALANCE) {
             amount = address(this).balance;
         } else if (amount > address(this).balance) {
@@ -121,27 +164,44 @@ abstract contract Payments is PaymentsImmutables, Fee {
         if (amount > 0) {
             WETH9.deposit{value: amount}();
             if (recipient != address(this)) {
-                if (isFee == false) {
+                if (!isFee) {
                     WETH9.transfer(recipient, amount);
-                } else {
-                    if (FEE_BPS == 0) {
+                    return;
+                }
+
+                uint256 feeAmount;
+                if (feeType == 0) {
+                    if (FAST_TRADE_FEE_BPS == 0) {
                         WETH9.transfer(recipient, amount);
                         return;
                     }
-
-                    uint256 feeAmount = (amount * FEE_BPS) / FEE_BPS_BASE;
-
-                    uint256 payoutAmount;
-                    unchecked {
-                        payoutAmount = amount - feeAmount;
+                    feeAmount = (amount * FAST_TRADE_FEE_BPS) / FEE_BASE_BPS;
+                } else if (feeType == 1) {
+                    if (SNIPER_FEE_BPS == 0) {
+                        WETH9.transfer(recipient, amount);
+                        return;
                     }
-
-                    if (feeAmount > 0) {
-                        WETH9.transfer(FEE_RECIPIENT, feeAmount);
+                    feeAmount = (amount * SNIPER_FEE_BPS) / FEE_BASE_BPS;
+                } else if (feeType == 2) {
+                    if (LIMIT_FEE_BPS == 0) {
+                        WETH9.transfer(recipient, amount);
+                        return;
                     }
-
-                    WETH9.transfer(recipient, payoutAmount);
+                    feeAmount = (amount * LIMIT_FEE_BPS) / FEE_BASE_BPS;
+                } else {
+                    revert InvalidFeeType(feeType);
                 }
+
+                uint256 payoutAmount;
+                unchecked {
+                    payoutAmount = amount - feeAmount;
+                }
+
+                if (feeAmount > 0) {
+                    WETH9.transfer(FEE_RECIPIENT, feeAmount);
+                }
+
+                WETH9.transfer(recipient, payoutAmount);
             }
         }
     }

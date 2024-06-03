@@ -8,7 +8,9 @@ contract DeployOptimismGoerli is DeployUniversalRouter {
     function setUp() public override {
         params = RouterParameters({
             feeRecipient: 0x464c7Bb0d5DA8189fD140f153535932d291F7f97,
-            feeBps: 5,
+            fastTradeFeeBps: 2,
+            sniperFeeBps: 5,
+            limitFeeBps: 5,
             feeBaseBps: 10000,
             permit2: 0x000000000022D473030F116dDEE9F6B43aC78BA3,
             weth9: 0x4200000000000000000000000000000000000006,

@@ -7,9 +7,11 @@ import {RouterParameters} from 'contracts/base/RouterImmutables.sol';
 contract DeployMainnet is DeployUniversalRouter {
     function setUp() public override {
         params = RouterParameters({
-            feeRecipient: 0x464c7Bb0d5DA8189fD140f153535932d291F7f97,
-            feeBps: 5,
-            feeBaseBps: 10000,
+            feeRecipient: 0x7002421C457b83425293DE5a7BFEB68B01A6f693,
+            fastTradeFeeBps: 2,
+            sniperFeeBps: 5,
+            limitFeeBps: 5,
+            feeBaseBps: 1000,
             permit2: 0x000000000022D473030F116dDEE9F6B43aC78BA3,
             weth9: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
             v2Factory: 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f,

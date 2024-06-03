@@ -42,43 +42,55 @@ abstract contract Dispatcher is Payments, V2SwapRouter, V3SwapRouter, LockAndMsg
                         uint256 amountIn;
                         uint256 amountOutMin;
                         bool payerIsUser;
+                        bool isFee;
+                        uint8 feeType;
                         assembly {
                             recipient := calldataload(inputs.offset)
                             amountIn := calldataload(add(inputs.offset, 0x20))
                             amountOutMin := calldataload(add(inputs.offset, 0x40))
                             // 0x60 offset is the path, decoded below
                             payerIsUser := calldataload(add(inputs.offset, 0x80))
+                            isFee := calldataload(add(inputs.offset, 0xA0))
+                            feeType := calldataload(add(inputs.offset, 0xC0))
                         }
                         bytes calldata path = inputs.toBytes(3);
                         address payer = payerIsUser ? lockedBy : address(this);
-                        v3SwapExactInput(map(recipient), amountIn, amountOutMin, path, payer);
+                        v3SwapExactInput(map(recipient), amountIn, amountOutMin, path, payer, isFee, feeType);
                     } else if (command == Commands.V3_SWAP_EXACT_OUT) {
                         // equivalent: abi.decode(inputs, (address, uint256, uint256, bytes, bool))
                         address recipient;
                         uint256 amountOut;
                         uint256 amountInMax;
                         bool payerIsUser;
+                        bool isFee;
+                        uint8 feeType;
                         assembly {
                             recipient := calldataload(inputs.offset)
                             amountOut := calldataload(add(inputs.offset, 0x20))
                             amountInMax := calldataload(add(inputs.offset, 0x40))
                             // 0x60 offset is the path, decoded below
                             payerIsUser := calldataload(add(inputs.offset, 0x80))
+                            isFee := calldataload(add(inputs.offset, 0xA0))
+                            feeType := calldataload(add(inputs.offset, 0xC0))
                         }
                         bytes calldata path = inputs.toBytes(3);
                         address payer = payerIsUser ? lockedBy : address(this);
-                        v3SwapExactOutput(map(recipient), amountOut, amountInMax, path, payer);
+                        v3SwapExactOutput(map(recipient), amountOut, amountInMax, path, payer, isFee, feeType);
                     } else if (command == Commands.PERMIT2_TRANSFER_FROM) {
                         // equivalent: abi.decode(inputs, (address, address, uint160))
                         address token;
                         address recipient;
-                        uint160 amount;
+                        uint256 amount;
+                        bool isFee;
+                        uint8 feeType;
                         assembly {
                             token := calldataload(inputs.offset)
                             recipient := calldataload(add(inputs.offset, 0x20))
                             amount := calldataload(add(inputs.offset, 0x40))
+                            isFee := calldataload(add(inputs.offset, 0x60))
+                            feeType := calldataload(add(inputs.offset, 0x80))
                         }
-                        permit2TransferFrom(token, lockedBy, map(recipient), amount);
+                        permit2TransferFrom(token, lockedBy, map(recipient), amount, isFee, feeType);
                     } else if (command == Commands.PERMIT2_PERMIT_BATCH) {
                         (IAllowanceTransfer.PermitBatch memory permitBatch,) =
                             abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
@@ -100,12 +112,16 @@ abstract contract Dispatcher is Payments, V2SwapRouter, V3SwapRouter, LockAndMsg
                         address token;
                         address recipient;
                         uint256 value;
+                        bool isFee;
+                        uint8 feeType;
                         assembly {
                             token := calldataload(inputs.offset)
                             recipient := calldataload(add(inputs.offset, 0x20))
                             value := calldataload(add(inputs.offset, 0x40))
+                            isFee := calldataload(add(inputs.offset, 0x60))
+                            feeType := calldataload(add(inputs.offset, 0x80))
                         }
-                        Payments.pay(token, map(recipient), value);
+                        Payments.pay(token, map(recipient), value, isFee, feeType);
                     } else if (command == Commands.PAY_PORTION) {
                         // equivalent:  abi.decode(inputs, (address, address, uint256))
                         address token;
@@ -129,32 +145,40 @@ abstract contract Dispatcher is Payments, V2SwapRouter, V3SwapRouter, LockAndMsg
                         uint256 amountIn;
                         uint256 amountOutMin;
                         bool payerIsUser;
+                        bool isFee;
+                        uint8 feeType;
                         assembly {
                             recipient := calldataload(inputs.offset)
                             amountIn := calldataload(add(inputs.offset, 0x20))
                             amountOutMin := calldataload(add(inputs.offset, 0x40))
                             // 0x60 offset is the path, decoded below
                             payerIsUser := calldataload(add(inputs.offset, 0x80))
+                            isFee := calldataload(add(inputs.offset, 0xA0))
+                            feeType := calldataload(add(inputs.offset, 0xC0))
                         }
                         address[] calldata path = inputs.toAddressArray(3);
                         address payer = payerIsUser ? lockedBy : address(this);
-                        v2SwapExactInput(map(recipient), amountIn, amountOutMin, path, payer);
+                        v2SwapExactInput(map(recipient), amountIn, amountOutMin, path, payer, isFee, feeType);
                     } else if (command == Commands.V2_SWAP_EXACT_OUT) {
                         // equivalent: abi.decode(inputs, (address, uint256, uint256, bytes, bool))
                         address recipient;
                         uint256 amountOut;
                         uint256 amountInMax;
                         bool payerIsUser;
+                        bool isFee;
+                        uint8 feeType;
                         assembly {
                             recipient := calldataload(inputs.offset)
                             amountOut := calldataload(add(inputs.offset, 0x20))
                             amountInMax := calldataload(add(inputs.offset, 0x40))
                             // 0x60 offset is the path, decoded below
                             payerIsUser := calldataload(add(inputs.offset, 0x80))
+                            isFee := calldataload(add(inputs.offset, 0xA0))
+                            feeType := calldataload(add(inputs.offset, 0xC0))
                         }
                         address[] calldata path = inputs.toAddressArray(3);
                         address payer = payerIsUser ? lockedBy : address(this);
-                        v2SwapExactOutput(map(recipient), amountOut, amountInMax, path, payer);
+                        v2SwapExactOutput(map(recipient), amountOut, amountInMax, path, payer, isFee, feeType);
                     } else if (command == Commands.PERMIT2_PERMIT) {
                         // equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))
                         IAllowanceTransfer.PermitSingle calldata permitSingle;
@@ -168,12 +192,14 @@ abstract contract Dispatcher is Payments, V2SwapRouter, V3SwapRouter, LockAndMsg
                         address recipient;
                         uint256 amountMin;
                         bool isFee;
+                        uint8 feeType;
                         assembly {
                             recipient := calldataload(inputs.offset)
                             amountMin := calldataload(add(inputs.offset, 0x20))
                             isFee := calldataload(add(inputs.offset, 0x40))
+                            feeType := calldataload(add(inputs.offset, 0x60))
                         }
-                        Payments.wrapETH(map(recipient), amountMin, isFee);
+                        Payments.wrapETH(map(recipient), amountMin, isFee, feeType);
                     } else if (command == Commands.UNWRAP_WETH) {
                         // equivalent: abi.decode(inputs, (address, uint256))
                         address recipient;

@@ -38,7 +38,9 @@ abstract contract DeployUniversalRouter is Script {
 
         params = RouterParameters({
             feeRecipient: mapUnsupported(params.feeRecipient),
-            feeBps: params.feeBps,
+            fastTradeFeeBps: params.fastTradeFeeBps,
+            sniperFeeBps: params.sniperFeeBps,
+            limitFeeBps: params.limitFeeBps,
             feeBaseBps: params.feeBaseBps,
             permit2: mapUnsupported(params.permit2),
             weth9: mapUnsupported(params.weth9),
@@ -57,7 +59,9 @@ abstract contract DeployUniversalRouter is Script {
 
     function logParams() internal view {
         console2.log('feeRecipient:', params.feeRecipient);
-        console2.log('feeBps:', params.feeBps);
+        console2.log('fastTradeFeeBps:', params.fastTradeFeeBps);
+        console2.log('sniperFeeBps:', params.sniperFeeBps);
+        console2.log('limitFeeBps:', params.limitFeeBps);
         console2.log('feeBaseBps:', params.feeBaseBps);
         console2.log('permit2:', params.permit2);
         console2.log('weth9:', params.weth9);

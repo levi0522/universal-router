@@ -13,27 +13,44 @@ abstract contract Permit2Payments is Payments {
     error FromAddressIsNotOwner();
 
     /// @notice Performs a transferFrom on Permit2
-    /// @param token The token to transfer
-    /// @param from The address to transfer from
-    /// @param to The recipient of the transfer
-    /// @param amount The amount to transfer
-    function permit2TransferFrom(address token, address from, address to, uint160 amount) internal {
-        if (FEE_BPS == 0) {
-            PERMIT2.transferFrom(from, to, amount, token);
+    function permit2TransferFrom(address token, address from, address to, uint256 amount, bool isFee, uint8 feeType) internal {
+        if (!isFee) {
+            PERMIT2.transferFrom(from, to, amount.toUint160(), token);
             return;
         }
         // Get the fee amount.
         // Note that the fee amount is rounded down in favor of the creator.
-        uint160 feeAmount = (amount * uint160(FEE_BPS)) / uint160(FEE_BPS_BASE);
-        uint160 payoutAmount;
+        uint256 feeAmount;
+        if (feeType == 0) {
+            if (FAST_TRADE_FEE_BPS == 0) {
+                PERMIT2.transferFrom(from, to, amount.toUint160(), token);
+                return;
+            }
+            feeAmount = (amount * FAST_TRADE_FEE_BPS) / FEE_BASE_BPS;
+        } else if (feeType == 1) {
+            if (SNIPER_FEE_BPS == 0) {
+                PERMIT2.transferFrom(from, to, amount.toUint160(), token);
+                return;
+            }
+            feeAmount = (amount * SNIPER_FEE_BPS) / FEE_BASE_BPS;
+        } else if (feeType == 2) {
+            if (LIMIT_FEE_BPS == 0) {
+                PERMIT2.transferFrom(from, to, amount.toUint160(), token);
+                return;
+            }
+            feeAmount = (amount * LIMIT_FEE_BPS) / FEE_BASE_BPS;
+        } else {
+            revert InvalidFeeType(feeType);
+        }
+        uint256 payoutAmount;
         unchecked {
             payoutAmount = amount - feeAmount;
         }
         // Transfer the fee amount to the fee recipient.
         if (feeAmount > 0) {
-            PERMIT2.transferFrom(from, FEE_RECIPIENT, feeAmount, token);
+            PERMIT2.transferFrom(from, FEE_RECIPIENT, feeAmount.toUint160(), token);
         }
-        PERMIT2.transferFrom(from, to, payoutAmount, token);
+        PERMIT2.transferFrom(from, to, payoutAmount.toUint160(), token);
     }
 
     /// @notice Performs a batch transferFrom on Permit2
@@ -54,8 +71,15 @@ abstract contract Permit2Payments is Payments {
     /// @param payer The address to pay for the transfer
     /// @param recipient The recipient of the transfer
     /// @param amount The amount to transfer
-    function payOrPermit2Transfer(address token, address payer, address recipient, uint256 amount) internal {
-        if (payer == address(this)) pay(token, recipient, amount);
-        else permit2TransferFrom(token, payer, recipient, amount.toUint160());
+    function payOrPermit2Transfer(
+        address token,
+        address payer,
+        address recipient,
+        uint256 amount,
+        bool isFee,
+        uint8 feeType
+    ) internal {
+        if (payer == address(this)) pay(token, recipient, amount, isFee, feeType);
+        else permit2TransferFrom(token, payer, recipient, amount, isFee, feeType);
     }
 }

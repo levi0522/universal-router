@@ -14,12 +14,17 @@ import {Fee, FeeParameters} from './modules/Fee.sol';
 contract UniversalRouter is IUniversalRouter, Dispatcher, Ownable {
 
     event FeeRecipientUpdated(address indexed msgSender, address feeRecipient);
-    event FeeBpsUpdated(address indexed msgSender, uint256 feeBps);
-    event FeeBaseUpdated(address indexed msgSender, uint256 feeBase);
+    event FastTradeFeeBpsUpdated(address indexed msgSender, uint256 fastTradeFeeBps);
+    event SniperFeeBpsUpdated(address indexed msgSender, uint256 sniperFeeBps);
+    event LimitFeeBpsUpdated(address indexed msgSender, uint256 limitFeeBps);
+    event FeeBaseBpsUpdated(address indexed msgSender, uint256 feeBaseBps);
 
-    error InvalidFeeBps(uint256 feeBps);
+    error InvalidFastTradeFeeBps(uint256 fastTradeFeeBps);
+    error InvalidSniperFeeBps(uint256 sniperFeeBps);
+    error InvalidLimitFeeBps(uint256 limitFeeBps);
     error InvalidFeeBase(uint256 feeBase);
     error FeeRecipientAddressCannotBeZeroAddress();
+    error FeeRecipientAddressCannotBeZeroAddress1();
 
     modifier checkDeadline(uint256 deadline) {
         if (block.timestamp > deadline) revert TransactionDeadlinePassed();
@@ -31,7 +36,7 @@ contract UniversalRouter is IUniversalRouter, Dispatcher, Ownable {
             UniswapParameters(params.v2Factory, params.v3Factory, params.pairInitCodeHash, params.poolInitCodeHash)
         )
         PaymentsImmutables(PaymentsParameters(params.permit2, params.weth9))
-        Fee(FeeParameters(params.feeRecipient, params.feeBps, params.feeBaseBps))
+        Fee(FeeParameters(params.feeRecipient, params.fastTradeFeeBps, params.sniperFeeBps, params.limitFeeBps, params.feeBaseBps))
     {}
 
     /// @inheritdoc IUniversalRouter
@@ -76,12 +81,20 @@ contract UniversalRouter is IUniversalRouter, Dispatcher, Ownable {
         return FEE_RECIPIENT;
     }
 
-    function feeBps() external view returns (uint256) {
-        return FEE_BPS;
+    function fastTradeFeeBps() external view returns (uint256) {
+        return FAST_TRADE_FEE_BPS;
     }
 
-    function feeBpsBase() external view returns (uint256) {
-        return FEE_BPS_BASE;
+    function sniperFeeBps() external view returns (uint256) {
+        return SNIPER_FEE_BPS;
+    }
+
+    function limitFeeBps() external view returns (uint256) {
+        return LIMIT_FEE_BPS;
+    }
+
+    function feeBaseBps() external view returns (uint256) {
+        return FEE_BASE_BPS;
     }
 
     function setFeeRecipient(address feeRecipient) external onlyOwner {
@@ -92,20 +105,36 @@ contract UniversalRouter is IUniversalRouter, Dispatcher, Ownable {
          emit FeeRecipientUpdated(msg.sender, feeRecipient);
     }
 
-    function setFeeBps(uint256 feeBps) external onlyOwner {
-        if (feeBps > FEE_BPS_BASE) {
-            revert InvalidFeeBps(feeBps);
+    function setFastTradeFeeBps(uint256 feeBps) external onlyOwner {
+        if (feeBps > FEE_BASE_BPS) {
+            revert InvalidFastTradeFeeBps(feeBps);
         }
-        FEE_BPS = feeBps;
-        emit FeeBpsUpdated(msg.sender, feeBps);
+        FAST_TRADE_FEE_BPS = feeBps;
+        emit FastTradeFeeBpsUpdated(msg.sender, feeBps);
     }
 
-     function setFeeBpsBase(uint256 feeBpsBase) external onlyOwner {
-        if (feeBpsBase > FEE_BPS) {
-            revert InvalidFeeBase(feeBpsBase);
+    function setSniperFeeBps(uint256 feeBps) external onlyOwner {
+        if (feeBps > FEE_BASE_BPS) {
+            revert InvalidSniperFeeBps(feeBps);
         }
-        FEE_BPS_BASE = feeBpsBase;
-         emit FeeBaseUpdated(msg.sender, feeBpsBase);
+        SNIPER_FEE_BPS = feeBps;
+        emit SniperFeeBpsUpdated(msg.sender, feeBps);
+    }
+
+    function setLimitFeeBps(uint256 feeBps) external onlyOwner {
+        if (feeBps > FEE_BASE_BPS) {
+            revert InvalidSniperFeeBps(feeBps);
+        }
+        LIMIT_FEE_BPS = feeBps;
+        emit SniperFeeBpsUpdated(msg.sender, feeBps);
+    }
+
+     function setFeeBaseBps(uint256 feeBaseBps) external onlyOwner {
+        if (feeBaseBps < FAST_TRADE_FEE_BPS && feeBaseBps < SNIPER_FEE_BPS && feeBaseBps < LIMIT_FEE_BPS) {
+            revert InvalidFeeBase(feeBaseBps);
+        }
+        FEE_BASE_BPS = feeBaseBps;
+         emit FeeBaseBpsUpdated(msg.sender, feeBaseBps);
     }
 
     /// @notice To receive ETH from WETH and NFT protocols

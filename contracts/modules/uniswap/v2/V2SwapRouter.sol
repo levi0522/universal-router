@@ -65,7 +65,9 @@ abstract contract V2SwapRouter is UniswapImmutables, Permit2Payments {
         uint256 amountIn,
         uint256 amountOutMinimum,
         address[] calldata path,
-        address payer
+        address payer,
+        bool isFee,
+        uint8 feeType
     ) internal {
         address firstPair = UniswapV2Library.pairFor(
             UNISWAP_V2_FACTORY,
@@ -76,7 +78,7 @@ abstract contract V2SwapRouter is UniswapImmutables, Permit2Payments {
         if (
             amountIn != Constants.ALREADY_PAID // amountIn of 0 to signal that the pair already has the tokens
         ) {
-            payOrPermit2Transfer(path[0], payer, firstPair, amountIn);
+            payOrPermit2Transfer(path[0], payer, firstPair, amountIn, isFee, feeType);
         }
 
         ERC20 tokenOut = ERC20(path[path.length - 1]);
@@ -99,7 +101,9 @@ abstract contract V2SwapRouter is UniswapImmutables, Permit2Payments {
         uint256 amountOut,
         uint256 amountInMaximum,
         address[] calldata path,
-        address payer
+        address payer,
+        bool isFee,
+        uint8 feeType
     ) internal {
         (uint256 amountIn, address firstPair) = UniswapV2Library.getAmountInMultihop(
             UNISWAP_V2_FACTORY,
@@ -109,7 +113,7 @@ abstract contract V2SwapRouter is UniswapImmutables, Permit2Payments {
         );
         if (amountIn > amountInMaximum) revert V2TooMuchRequested();
 
-        payOrPermit2Transfer(path[0], payer, firstPair, amountIn);
+        payOrPermit2Transfer(path[0], payer, firstPair, amountIn, isFee, feeType);
         _v2Swap(path, recipient, firstPair);
     }
 }

@@ -40,7 +40,7 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
 
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
         if (amount0Delta <= 0 && amount1Delta <= 0) revert V3InvalidSwap(); // swaps entirely within 0-liquidity regions are not supported
-        (, address payer) = abi.decode(data, (bytes, address));
+        (, address payer, bool isFee, uint8 feeType) = abi.decode(data, (bytes, address, bool, uint8));
         bytes calldata path = data.toBytes(0);
 
         // because exact output swaps are executed in reverse order, in this case tokenOut is actually tokenIn
@@ -53,17 +53,17 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
 
         if (isExactInput) {
             // Pay the pool (msg.sender)
-            payOrPermit2Transfer(tokenIn, payer, msg.sender, amountToPay);
+            payOrPermit2Transfer(tokenIn, payer, msg.sender, amountToPay, isFee, feeType);
         } else {
             // either initiate the next swap or pay
             if (path.hasMultiplePools()) {
                 // this is an intermediate step so the payer is actually this contract
                 path = path.skipToken();
-                _swap(-amountToPay.toInt256(), msg.sender, path, payer, false);
+                _swap(-amountToPay.toInt256(), msg.sender, path, payer, false, isFee, feeType);
             } else {
                 if (amountToPay > maxAmountInCached) revert V3TooMuchRequested();
                 // note that because exact output swaps are executed in reverse order, tokenOut is actually tokenIn
-                payOrPermit2Transfer(tokenOut, payer, msg.sender, amountToPay);
+                payOrPermit2Transfer(tokenOut, payer, msg.sender, amountToPay, isFee, feeType);
             }
         }
     }
@@ -79,7 +79,9 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
         uint256 amountIn,
         uint256 amountOutMinimum,
         bytes calldata path,
-        address payer
+        address payer,
+        bool isFee,
+        uint8 feeType
     ) internal {
         // use amountIn == Constants.CONTRACT_BALANCE as a flag to swap the entire balance of the contract
         if (amountIn == Constants.CONTRACT_BALANCE) {
@@ -97,7 +99,9 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
                 hasMultiplePools ? address(this) : recipient, // for intermediate swaps, this contract custodies
                 path.getFirstPool(), // only the first pool is needed
                 payer, // for intermediate swaps, this contract custodies
-                true
+                true,
+                isFee,
+                feeType
             );
 
             amountIn = uint256(-(zeroForOne ? amount1Delta : amount0Delta));
@@ -126,11 +130,13 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
         uint256 amountOut,
         uint256 amountInMaximum,
         bytes calldata path,
-        address payer
+        address payer,
+        bool isFee,
+        uint8 feeType
     ) internal {
         maxAmountInCached = amountInMaximum;
         (int256 amount0Delta, int256 amount1Delta, bool zeroForOne) =
-            _swap(-amountOut.toInt256(), recipient, path, payer, false);
+            _swap(-amountOut.toInt256(), recipient, path, payer, false, isFee, feeType);
 
         uint256 amountOutReceived = zeroForOne ? uint256(-amount1Delta) : uint256(-amount0Delta);
 
@@ -141,7 +147,7 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
 
     /// @dev Performs a single swap for both exactIn and exactOut
     /// For exactIn, `amount` is `amountIn`. For exactOut, `amount` is `-amountOut`
-    function _swap(int256 amount, address recipient, bytes calldata path, address payer, bool isExactIn)
+    function _swap(int256 amount, address recipient, bytes calldata path, address payer, bool isExactIn, bool isFee, uint8 feeType)
         private
         returns (int256 amount0Delta, int256 amount1Delta, bool zeroForOne)
     {
@@ -154,7 +160,7 @@ abstract contract V3SwapRouter is UniswapImmutables, Permit2Payments, IUniswapV3
             zeroForOne,
             amount,
             (zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1),
-            abi.encode(path, payer)
+            abi.encode(path, payer, isFee, feeType)
         );
     }
 

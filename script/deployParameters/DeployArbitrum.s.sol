@@ -7,9 +7,11 @@ import {RouterParameters} from 'contracts/base/RouterImmutables.sol';
 contract DeployArbitrum is DeployUniversalRouter {
     function setUp() public override {
         params = RouterParameters({
-            feeRecipient: 0x464c7Bb0d5DA8189fD140f153535932d291F7f97,
-            feeBps: 5,
-            feeBaseBps: 10000,
+            feeRecipient: 0x7002421C457b83425293DE5a7BFEB68B01A6f693,
+            fastTradeFeeBps: 2,
+            sniperFeeBps: 5,
+            limitFeeBps: 5,
+            feeBaseBps: 1000,
             permit2: 0x000000000022D473030F116dDEE9F6B43aC78BA3,
             weth9: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,
             v2Factory: 0xf1D7CC64Fb4452F05c498126312eBE29f30Fbcf9,
